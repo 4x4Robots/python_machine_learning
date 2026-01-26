@@ -12,4 +12,5 @@ dependencies = [
     "polars>=1.37.1",
     "pygad>=3.5.0",
     "pyyaml>=6.0.3",
+    "scikit-learn>=1.8.0",
 ]
