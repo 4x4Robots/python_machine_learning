@@ -13,8 +13,9 @@ def _():
     import marimo as mo
     import altair as alt
     import seaborn as sns
+    import plotly.express as px
     import matplotlib.pyplot as plt
-    return alt, mo, np, pl, plt, pygad, scipy, sns
+    return alt, mo, np, pl, plt, px, pygad, scipy, sns
 
 
 @app.cell(hide_code=True)
@@ -106,6 +107,7 @@ def _(l_number_dimensions, ui_max_x, ui_max_y, ui_min_x, ui_min_y):
 
 @app.cell
 def _(analytic_function, np):
+    # add lrmucache
     def calculate_analytic_values(x_min, x_max, steps, dimension):
         """Calculate the analytic function values for the given dimension."""
         x_values = np.linspace(x_min, x_max, steps)
@@ -116,9 +118,41 @@ def _(analytic_function, np):
 
 @app.cell
 def _(
-    calculate_analytic_values,
+    analytic_function,
     l_number_dimensions,
-    plt,
+    scipy,
+    ui_max_x,
+    ui_max_y,
+    ui_min_x,
+    ui_min_y,
+    ui_number_dimensions,
+):
+    def find_analytic_optimum_brute(dimension, steps=0.5):
+        x_min, x_max = ui_min_x.value, ui_max_x.value
+        y_min, y_max = ui_min_y.value, ui_max_y.value
+        if dimension == l_number_dimensions[0]:
+            def objective(x):
+                return -analytic_function(x, dimension)
+            ranges = (slice(x_min, x_max, steps),)
+        else:
+            raise ValueError(f"Invalid dimension: '{dimension}'")
+
+        # Perform brute-force optimization
+        resbrute = scipy.optimize.brute(objective, ranges, finish=None, full_output=True)
+
+        print(f"Brute-force result: {resbrute[0]} with value: {resbrute[1]}")
+        return resbrute[0], -resbrute[1]
+
+    find_analytic_optimum_brute(ui_number_dimensions.value)
+    return (find_analytic_optimum_brute,)
+
+
+@app.cell
+def _(
+    calculate_analytic_values,
+    find_analytic_optimum_brute,
+    l_number_dimensions,
+    px,
     ui_max_x,
     ui_min_x,
     ui_number_dimensions,
@@ -127,12 +161,15 @@ def _(
         """Plot the analytic function for the given dimension."""
         if dimension == l_number_dimensions[0]:
             x, y = calculate_analytic_values(ui_min_x.value, ui_max_x.value, 100, dimension)
-            plt.plot(x, y)
-            plt.title("Analytic Function (1D)")
-            plt.xlabel("x")
-            plt.ylabel("f(x)")
-            plt.grid()
-            plt.show()
+            # add maximum to plot
+            x_max, y_max = find_analytic_optimum_brute(dimension)
+            # use a ploty lineplot to show the values
+            px.line(
+                x=x,
+                y=y,
+                labels={"x": "x", "y": "Analytic function value"},
+                title="Analytic function plot 1D",
+            ).add_scatter(x=[x_max], y=[y_max], mode="markers", marker=dict(color="red", size=10), name="Maximum").show()
         else:
             raise ValueError(f"Invalid dimension: '{dimension}'")
 
