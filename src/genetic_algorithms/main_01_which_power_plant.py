@@ -22,10 +22,121 @@ def _(mo):
     mo.md(r"""
     # Genetic algorithms in Python with PyGAD
 
-    This notebook is heavily inspired by
-    [this blog post](https://anderfernandez.com/en/blog/genetic-algorithm-in-python/)
-    and tries to simulate the learnings of the lecture "Expertensysteme in der elektrischen Energieversorgung".
+    This notebook tries to simulate the learnings of the lecture "Expertensysteme in der elektrischen Energieversorgung" for genetic algorithms
+    and takes some inspiration from
+    [this blog post](https://anderfernandez.com/en/blog/genetic-algorithm-in-python/).
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Preliminary testing with simple functions
+
+    Find the maximum of a simple quadratic function using a genetic algorithm.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    l_number_dimensions = ["one", "two", "three"]
+    ui_number_dimensions = mo.ui.dropdown(
+        label="Number of dimensions",
+        options=l_number_dimensions,
+        value=l_number_dimensions[1],
+    )
+
+    ui_min_x = mo.ui.number(
+        label="Minimum x",
+        value=40,
+    )
+
+    ui_max_x = mo.ui.number(
+        label="Maximum x",
+        value=240,
+    )
+
+    ui_min_y = mo.ui.number(
+        label="Minimum y",
+        value=1000,
+    )
+
+    ui_max_y = mo.ui.number(
+        label="Maximum y",
+        value=10000,
+    )
+
+    mo.vstack([
+        mo.md("### Settings"),
+        mo.hstack([
+            ui_number_dimensions,
+        ], justify="start"),
+        mo.hstack([
+            ui_min_x,
+            ui_max_x,
+        ], justify="start"),
+        mo.hstack([
+            ui_min_y,
+            ui_max_y,
+        ], justify="start"),
+    ])
+    return (
+        l_number_dimensions,
+        ui_max_x,
+        ui_max_y,
+        ui_min_x,
+        ui_min_y,
+        ui_number_dimensions,
+    )
+
+
+@app.cell
+def _(l_number_dimensions, ui_max_x, ui_max_y, ui_min_x, ui_min_y):
+    def analytic_function(x, dimension):
+        """Return the analytic function value for the given dimension at value x."""
+        if dimension == l_number_dimensions[0]:
+            # parabola with maximum 8/10 (max - min) at x = 3/5 * (max - min)
+            return -(x - 4/5 * (ui_max_x.value - ui_min_x.value)) ** 2 + 2 * 8/10 * (ui_max_y.value - ui_min_y.value)
+        else:
+            raise ValueError(f"Invalid dimension: '{dimension}'")
+    return (analytic_function,)
+
+
+@app.cell
+def _(analytic_function, np):
+    def calculate_analytic_values(x_min, x_max, steps, dimension):
+        """Calculate the analytic function values for the given dimension."""
+        x_values = np.linspace(x_min, x_max, steps)
+        y_values = analytic_function(x_values, dimension)
+        return x_values, y_values
+    return (calculate_analytic_values,)
+
+
+@app.cell
+def _(
+    calculate_analytic_values,
+    l_number_dimensions,
+    plt,
+    ui_max_x,
+    ui_min_x,
+    ui_number_dimensions,
+):
+    def plot_analytic_function(dimension):
+        """Plot the analytic function for the given dimension."""
+        if dimension == l_number_dimensions[0]:
+            x, y = calculate_analytic_values(ui_min_x.value, ui_max_x.value, 100, dimension)
+            plt.plot(x, y)
+            plt.title("Analytic Function (1D)")
+            plt.xlabel("x")
+            plt.ylabel("f(x)")
+            plt.grid()
+            plt.show()
+        else:
+            raise ValueError(f"Invalid dimension: '{dimension}'")
+
+    plot_analytic_function(ui_number_dimensions.value)
     return
 
 
@@ -122,7 +233,7 @@ def _(categories, demand, get_interpolated_cost, np):
             cost = get_interpolated_cost(sol, category)
             total_cost += cost
         return total_cost
-    
+
     def fitness_func(ga, solution, solution_idx):
         """Fitness function to minimize the cost of power generation while meeting demand."""
         total_power = calculate_total_power(solution)
@@ -196,7 +307,7 @@ def _(fitness_func, scipy):
         #total_power = calculate_total_power(resbrute[0])
         #total_cost = calculate_total_cost(resbrute[0])
         #assert total_cost == resbrute[1]
-    
+
         #print(f"Brute-force result: {resbrute}, Total Power: {total_power}, Total Cost: {total_cost}")
         print(resbrute)
         return resbrute
