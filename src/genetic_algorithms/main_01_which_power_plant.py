@@ -148,6 +148,68 @@ def _(
 
 
 @app.cell
+def _(ui_max_x, ui_min_x):
+    def normalize_solution(solution):
+        """Normalize the solution to the given range of x values."""
+        return ui_min_x.value + (ui_max_x.value - ui_min_x.value) * solution
+
+    def denormalize_solution(normalized_solution):
+        """Denormalize the solution from the given range of x values."""
+        return (normalized_solution - ui_min_x.value) / (ui_max_x.value - ui_min_x.value)
+    return (normalize_solution,)
+
+
+@app.cell
+def _(analytic_function, normalize_solution, pygad, ui_number_dimensions):
+    last_fitness = 0
+
+    def find_analytic_optimum_genetic(dimension):
+        def fitness_func(ga, solution, solution_idx):
+            # maximize the this funciton to find optimal solution
+            # normalize solution to the range of min_x to max_x
+            normalized_solution = normalize_solution(solution)
+            return analytic_function(normalized_solution, dimension)
+
+        global last_fitness
+        last_fitness = 0
+        def on_generation(ga_instance):
+            global last_fitness
+            print(f"Generation = {ga_instance.generations_completed}")
+            print(f"Fitness    = {ga_instance.best_solution(pop_fitness=ga_instance.last_generation_fitness)[1]}")
+            print(f"Change     = {ga_instance.best_solution(pop_fitness=ga_instance.last_generation_fitness)[1] - last_fitness}")
+            last_fitness = ga_instance.best_solution(pop_fitness=ga_instance.last_generation_fitness)[1]
+
+        
+        # Create an instance of the GA class
+        ga_instance = pygad.GA(
+            num_generations=100,
+            sol_per_pop=10,
+            num_genes=1,
+            num_parents_mating=3,
+            fitness_func=fitness_func,
+            mutation_type="random",
+            mutation_probability=0.6,
+            #init_range_low=-1,
+            #init_range_high=200,
+            #gene_space=gene_space,
+            on_generation=on_generation,
+            random_seed = 53,
+        )
+
+        # Run the genetic algorithm
+        ga_instance.run()
+
+        # Fetch the best solution
+        solution, solution_fitness, _ = ga_instance.best_solution()
+        print(f"Best solution: {solution} => {normalize_solution(solution)}, Fitness: {solution_fitness}")
+
+        fig = ga_instance.plot_fitness()
+
+    find_analytic_optimum_genetic(ui_number_dimensions.value)
+    return
+
+
+@app.cell
 def _(
     calculate_analytic_values,
     find_analytic_optimum_brute,
@@ -169,7 +231,7 @@ def _(
                 y=y,
                 labels={"x": "x", "y": "Analytic function value"},
                 title="Analytic function plot 1D",
-            ).add_scatter(x=[x_max], y=[y_max], mode="markers", marker=dict(color="red", size=10), name="Maximum").show()
+            ).add_scatter(x=[x_max], y=[y_max], mode="markers", marker=dict(color="red", size=10), name="Maximum Brute").show()
         else:
             raise ValueError(f"Invalid dimension: '{dimension}'")
 
