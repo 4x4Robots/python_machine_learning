@@ -9,6 +9,7 @@ dependencies = [
     "matplotlib>=3.10.8",
     "numpy>=2.4.1",
     "pandas>=3.0.0",
+    "plotly>=6.5.2",
     "plotnine>=0.15.2",
     "polars>=1.37.1",
     "pygad>=3.5.0",
