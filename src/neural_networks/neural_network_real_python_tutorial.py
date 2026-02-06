@@ -67,17 +67,145 @@ def _(np):
         weigths_2 = [2.17, 0.32]
 
         result_manual = calculate_2n_dot_product(input_vector, weigths_1)
-        print(f"Manual dot product: {result_manual}")
+        print(f"Manual dot product (weights 1): {result_manual}")
 
         result_1 = np.dot(input_vector, weigths_1)
-        print(f"Numpy dot product (weights 1): {result_1}")
+        print(f"Numpy dot product  (weights 1): {result_1}")
 
         assert np.isclose(result_manual, result_1), "The manual dot product does not match the numpy dot product for weights 1."
 
         result_2 = np.dot(input_vector, weigths_2)
-        print(f"Numpy dot product (weights 2): {result_2}")
+        print(f"Numpy dot product  (weights 2): {result_2}")
 
     test_numpy_dot_product()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Making our first prediction
+
+    > Since this is your very first neural network, you’ll keep things straightforward and build a network with only two layers. So far, you’ve seen that the only two operations used inside the neural network were the dot product and a sum. Both are **linear operations**.
+    >
+    > If you add more layers but keep using only linear operations, then adding more layers would have no effect because each layer will always have some correlation with the input of the previous layer. This implies that, for a network with multiple layers, there would always be a network with fewer layers that predicts the same results.
+    >
+    > What you want is to find an operation that makes the middle layers sometimes correlate with an input and sometimes not correlate.
+    >
+    > You can achieve this behavior by using nonlinear functions. These nonlinear functions are called activation functions. There are many types of **activation functions**. The [ReLU (rectified linear unit)](https://en.wikipedia.org/wiki/Rectifier_(neural_networks)), for example, is a function that converts all negative numbers to zero. This means that the network can “turn off” a weight if it’s negative, adding nonlinearity.
+    >
+    > The network you’re building will use the [sigmoid activation function](https://en.wikipedia.org/wiki/Sigmoid_function). You’ll use it in the last layer, layer_2. The only two possible outputs in the dataset are 0 and 1, and the sigmoid function limits the output to a range between 0 and 1. This is the formula to express the sigmoid function:
+    >
+    >$$
+    S(x) = \frac{1}{1 + e^{-x}}
+    $$
+
+    excerpt from: https://realpython.com/python-ai-neural-network/ (06.02.2026)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Classification problem
+
+    A subset of supervised learning problems in which you have a dataset with the inputs and the known targets.
+    Here are the inputs and the outputs of the dataset:
+
+    | input vector | target |
+    | --- | --- |
+    | [1.66, 1.56] | 1 |
+    | [2, 1.5] | 0 |
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+    
+    def first_prediction(input_vector):
+        print(f"Performing first prediction for input vector: {input_vector}") 
+        # Wrapping the vectors in NumPy arrays
+        #input_vector = np.array([1.66, 1.56])
+        weights_1 = np.array([1.45, -0.66])
+        bias = np.array([0.0])
+
+        def make_prediction(input_vector, weights, bias):
+            layer_1 = np.dot(input_vector, weights) + bias
+            #print(f"Layer 1 output: {layer_1}")
+            layer_2 = sigmoid(layer_1)
+            #print(f"Layer 2 output (after sigmoid): {layer_2}")
+            return layer_2
+
+        prediction = make_prediction(input_vector, weights_1, bias)
+        print(f"The prediction result is: {prediction}")
+        return prediction
+
+    if first_prediction(np.array([1.66, 1.56])) > 0.5:
+        print("The predicted class is: 1 which is correct")
+
+    print("-------------")
+    if first_prediction(np.array([2, 1.5])) < 0.5:
+        print("The predicted class is: 0 which is correct")
+    else:
+        print("The predicted class is: 1 which is **incorrect**")
+    return (first_prediction,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Computing the prediction error
+
+    Use the [mean squared error (MSE)](https://en.wikipedia.org/wiki/Mean_squared_error) to compute the error of the prediction. Use this as the **cost function** or **loss function**. The MSE is calculated as:
+
+    $$
+    \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+    $$
+    """)
+    return
+
+
+@app.cell
+def _(first_prediction, np):
+    def calculate_mse():
+        prediction = first_prediction(np.array([2, 1.5]))
+        target = 0
+        mse = np.square(prediction - target)
+
+        print(f"Prediction: {prediction}, Target: {target}, MSE: {mse}")
+
+    calculate_mse()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Reducing the error with gradient descent
+
+    Use the derivative of the cost function to find the direction in which to adjust the weights and bias to reduce the error. This process is called **gradient descent**.
+    """)
+    return
+
+
+@app.cell
+def _(first_prediction, np):
+    def calculate_gradient_descent():
+        input_vector = np.array([2, 1.5])
+    
+        prediction = first_prediction(input_vector)
+        target = 0
+
+        # d/dx mse = d/dx (prediction - target)^2
+        derivative = 2 * (prediction - target)
+
+        print(f"Derivative of MSE is: {derivative}")
+
+    calculate_gradient_descent()
     return
 
 
