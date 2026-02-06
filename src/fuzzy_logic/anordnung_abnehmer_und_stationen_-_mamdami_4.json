@@ -1,0 +1,171 @@
+{
+  "system_type": "MamdaniSystem",
+  "name": "Anordnung Abnehmer und Stationen - Mamdami 4",
+  "metadata": {
+    "created_at": "2026-02-06T11:11:41.377835",
+    "version": "1.0",
+    "library": "fuzzy_systems"
+  },
+  "defuzzification_method": "centroid",
+  "inference_config": {
+    "and_method": "min",
+    "or_method": "max",
+    "implication_method": "min",
+    "aggregation_method": "max"
+  },
+  "input_variables": {
+    "last_s": {
+      "universe": [
+        0.0,
+        1000.0
+      ],
+      "terms": {
+        "k": {
+          "mf_type": "trapezoidal",
+          "params": [
+            0.0,
+            0.0,
+            400.0,
+            500.0
+          ]
+        },
+        "mk": {
+          "mf_type": "triangular",
+          "params": [
+            400.0,
+            500.0,
+            600.0
+          ]
+        },
+        "m": {
+          "mf_type": "triangular",
+          "params": [
+            500.0,
+            600.0,
+            700.0
+          ]
+        },
+        "mg": {
+          "mf_type": "triangular",
+          "params": [
+            600.0,
+            700.0,
+            800.0
+          ]
+        },
+        "g": {
+          "mf_type": "trapezoidal",
+          "params": [
+            700.0,
+            800.0,
+            1000.0,
+            1000.0
+          ]
+        }
+      }
+    },
+    "entfernung_l": {
+      "universe": [
+        0.0,
+        1000.0
+      ],
+      "terms": {
+        "k": {
+          "mf_type": "trapezoidal",
+          "params": [
+            0.0,
+            0.0,
+            200.0,
+            300.0
+          ]
+        },
+        "mk": {
+          "mf_type": "triangular",
+          "params": [
+            200.0,
+            300.0,
+            400.0
+          ]
+        },
+        "m": {
+          "mf_type": "triangular",
+          "params": [
+            300.0,
+            400.0,
+            500.0
+          ]
+        },
+        "mg": {
+          "mf_type": "triangular",
+          "params": [
+            400.0,
+            500.0,
+            600.0
+          ]
+        },
+        "g": {
+          "mf_type": "trapezoidal",
+          "params": [
+            500.0,
+            600.0,
+            8000.0,
+            8000.0
+          ]
+        }
+      }
+    }
+  },
+  "output_variables": {
+    "entscheidung_t": {
+      "universe": [
+        0.0,
+        1.0
+      ],
+      "terms": {
+        "k": {
+          "mf_type": "trapezoidal",
+          "params": [
+            0.0,
+            0.0,
+            0.16,
+            0.33
+          ]
+        },
+        "mk": {
+          "mf_type": "triangular",
+          "params": [
+            0.16,
+            0.33,
+            0.5
+          ]
+        },
+        "m": {
+          "mf_type": "triangular",
+          "params": [
+            0.33,
+            0.5,
+            0.63
+          ]
+        },
+        "mg": {
+          "mf_type": "triangular",
+          "params": [
+            0.5,
+            0.63,
+            0.83
+          ]
+        },
+        "g": {
+          "mf_type": "trapezoidal",
+          "params": [
+            0.63,
+            0.83,
+            1.0,
+            1.0
+          ]
+        }
+      }
+    }
+  },
+  "rules": []
+}
