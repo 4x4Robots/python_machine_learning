@@ -180,7 +180,7 @@ def _(np, ui_dropdown_operation):
     elif target_operation == "OR":
         inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
         outputs = np.array([[0], [1], [1], [1]])
-    return inputs, outputs
+    return inputs, outputs, target_operation
 
 
 @app.cell(hide_code=True)
@@ -247,29 +247,68 @@ def _(mo):
 
 
 @app.cell
-def _(inputs, nn, np, outputs, plt, predicted_output):
+def _(
+    inputs,
+    nn,
+    np,
+    outputs,
+    plt,
+    predicted_output,
+    target_operation,
+    ui_dropdown_plot_type,
+):
     # Round the predicted output to get binary predictions
     predicted_output_binary = np.round(predicted_output)
 
     # Plot the decision boundary
-    x_min, x_max = inputs[:, 0].min() - 0.5, inputs[:, 0].max() + 0.5
-    y_min, y_max = inputs[:, 1].min() - 0.5, inputs[:, 1].max() + 0.5
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
-                         np.arange(y_min, y_max, 0.1))
-    Z = np.array([nn.predict(np.array([x, y])) for x, y in zip(xx.ravel(), yy.ravel())])
-    Z = np.round(Z.reshape(xx.shape))
+    def plot_decision_boundary_spectral(nn, inputs, outputs):
+        x_min, x_max = inputs[:, 0].min() - 0.5, inputs[:, 0].max() + 0.5
+        y_min, y_max = inputs[:, 1].min() - 0.5, inputs[:, 1].max() + 0.5
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                             np.arange(y_min, y_max, 0.1))
+        Z = np.array([nn.predict(np.array([x, y])) for x, y in zip(xx.ravel(), yy.ravel())])
+        Z = np.round(Z.reshape(xx.shape))
+    
+        plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+        plt.scatter(inputs[:, 0], inputs[:, 1], c=outputs.ravel(), cmap=plt.cm.Spectral)
+        plt.title(f"{target_operation} Neural Network Decision Boundary")
+        plt.xlabel("Input 1")
+        plt.ylabel("Input 2")
+        plt.show()
+    
+    def plot_3d_answer(nn, input, outputs):
+        x_min, x_max = inputs[:, 0].min() - 0.5, inputs[:, 0].max() + 0.5
+        y_min, y_max = inputs[:, 1].min() - 0.5, inputs[:, 1].max() + 0.5
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                             np.arange(y_min, y_max, 0.1))
+        Z = np.array([nn.predict(np.array([x, y])) for x, y in zip(xx.ravel(), yy.ravel())])
 
-    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
-    plt.scatter(inputs[:, 0], inputs[:, 1], c=outputs.ravel(), cmap=plt.cm.Spectral)
-    plt.title("XOR Neural Network Decision Boundary")
-    plt.xlabel("Input 1")
-    plt.ylabel("Input 2")
-    plt.show()
+        # use plotly express to plot the 3d surface
+        import plotly.express as px
+        # use the original inputs and outputs to plot the scatter points in black
+        fig = px.scatter_3d(x=inputs[:, 0], y=inputs[:, 1], z=outputs.ravel(), title=f"{target_operation} Neural Network 3D Output", labels={"x": "Input 1", "y": "Input 2", "z": "Output"}, color_discrete_sequence=["black"])
+        # add the predicted output as a surface mesh
+        fig.add_traces(px.scatter_3d(x=xx.ravel(), y=yy.ravel(), z=Z.ravel(), color=Z.ravel()).data)
+        fig.show()
+
+    if ui_dropdown_plot_type.value == "Contour":
+        plot_decision_boundary_spectral(nn, inputs, outputs)
+    elif ui_dropdown_plot_type.value == "3D Surface":
+        plot_3d_answer(nn, inputs, outputs)
 
     # Print the accuracy
     accuracy = np.mean(predicted_output_binary.ravel() == outputs.ravel())
     print("Accuracy:", accuracy)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    ui_dropdown_plot_type = mo.ui.dropdown(
+        options=["Contour", "3D Surface"], value="Contour", label="Choose plot type:"
+    )
+    ui_dropdown_plot_type
+    return (ui_dropdown_plot_type,)
 
 
 if __name__ == "__main__":
