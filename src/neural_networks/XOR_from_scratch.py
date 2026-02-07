@@ -109,7 +109,7 @@ def _(Layer, np):
 
             # Initialize layers
             for i in range(len(layers) - 1):
-                self.layers.append(Layer(layers[i+1], layers[i]))
+                self.layers.append(Layer(layers[i + 1], layers[i]))
 
         def train(self, inputs, outputs):
             for epoch in range(self.epochs):
@@ -122,7 +122,7 @@ def _(Layer, np):
 
                     # Calculate error (MSE)
                     output_errors = y - activations[-1]
-                    total_error += np.sum(output_errors ** 2)
+                    total_error += np.sum(output_errors**2)
 
                     # Backward pass
                     errors = output_errors
@@ -132,7 +132,7 @@ def _(Layer, np):
                 # Print MSE every 1000 epochs
                 if epoch % 1000 == 0:
                     mse = total_error / len(inputs)
-                    print(f'Epoch {epoch}, MSE: {mse}')
+                    print(f"Epoch {epoch}, MSE: {mse}")
 
         def predict(self, inputs):
             activations = inputs
@@ -161,9 +161,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    ui_dropdown_operation = mo.ui.dropdown(
-        options=["AND", "OR", "XOR"], value="XOR", label="Choose operation:"
-    )
+    ui_dropdown_operation = mo.ui.dropdown(options=["AND", "OR", "XOR"], value="XOR", label="Choose operation:")
     ui_dropdown_operation
     return (ui_dropdown_operation,)
 
@@ -186,11 +184,7 @@ def _(np, ui_dropdown_operation):
 @app.cell(hide_code=True)
 def _(inputs, outputs, pl):
     # Visualize inputs and output using a dataframe
-    df_input = pl.DataFrame({
-        "Input A": inputs[:, 0],
-        "Input B": inputs[:, 1],
-        "Output": outputs.ravel()
-    })
+    df_input = pl.DataFrame({"Input A": inputs[:, 0], "Input B": inputs[:, 1], "Output": outputs.ravel()})
     df_input
     return
 
@@ -206,7 +200,7 @@ def _(mo):
 @app.cell
 def _(NeuralNetwork, inputs, outputs):
     # Initialize the neural network with an input layer, one hidden layer, and an output layer
-    layers = [2,2,1]  # 2 input neurons, 2 neurons in hidden layer, 1 output neuron
+    layers = [2, 2, 1]  # 2 input neurons, 2 neurons in hidden layer, 1 output neuron
     nn = NeuralNetwork(layers, 0.1, 10000)
 
     # Train the neural network
@@ -260,36 +254,45 @@ def _(
     # Round the predicted output to get binary predictions
     predicted_output_binary = np.round(predicted_output)
 
+
     # Plot the decision boundary
     def plot_decision_boundary_spectral(nn, inputs, outputs):
         x_min, x_max = inputs[:, 0].min() - 0.5, inputs[:, 0].max() + 0.5
         y_min, y_max = inputs[:, 1].min() - 0.5, inputs[:, 1].max() + 0.5
-        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
-                             np.arange(y_min, y_max, 0.1))
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
         Z = np.array([nn.predict(np.array([x, y])) for x, y in zip(xx.ravel(), yy.ravel())])
         Z = np.round(Z.reshape(xx.shape))
-    
+
         plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
         plt.scatter(inputs[:, 0], inputs[:, 1], c=outputs.ravel(), cmap=plt.cm.Spectral)
         plt.title(f"{target_operation} Neural Network Decision Boundary")
         plt.xlabel("Input 1")
         plt.ylabel("Input 2")
         plt.show()
-    
+
+
     def plot_3d_answer(nn, input, outputs):
         x_min, x_max = inputs[:, 0].min() - 0.5, inputs[:, 0].max() + 0.5
         y_min, y_max = inputs[:, 1].min() - 0.5, inputs[:, 1].max() + 0.5
-        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
-                             np.arange(y_min, y_max, 0.1))
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
         Z = np.array([nn.predict(np.array([x, y])) for x, y in zip(xx.ravel(), yy.ravel())])
 
         # use plotly express to plot the 3d surface
         import plotly.express as px
+
         # use the original inputs and outputs to plot the scatter points in black
-        fig = px.scatter_3d(x=inputs[:, 0], y=inputs[:, 1], z=outputs.ravel(), title=f"{target_operation} Neural Network 3D Output", labels={"x": "Input 1", "y": "Input 2", "z": "Output"}, color_discrete_sequence=["black"])
+        fig = px.scatter_3d(
+            x=inputs[:, 0],
+            y=inputs[:, 1],
+            z=outputs.ravel(),
+            title=f"{target_operation} Neural Network 3D Output",
+            labels={"x": "Input 1", "y": "Input 2", "z": "Output"},
+            color_discrete_sequence=["black"],
+        )
         # add the predicted output as a surface mesh
-        fig.add_traces(px.scatter_3d(x=xx.ravel(), y=yy.ravel(), z=Z.ravel(), color=Z.ravel()).data)
+        fig.add_traces(px.scatter_3d(x=xx.ravel(), y=yy.ravel(), z=Z.ravel(), color=Z.ravel(), labels={"color": "Predicted Output"}).data)
         fig.show()
+
 
     if ui_dropdown_plot_type.value == "Contour":
         plot_decision_boundary_spectral(nn, inputs, outputs)
@@ -304,9 +307,7 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    ui_dropdown_plot_type = mo.ui.dropdown(
-        options=["Contour", "3D Surface"], value="Contour", label="Choose plot type:"
-    )
+    ui_dropdown_plot_type = mo.ui.dropdown(options=["Contour", "3D Surface"], value="Contour", label="Choose plot type:")
     ui_dropdown_plot_type
     return (ui_dropdown_plot_type,)
 
