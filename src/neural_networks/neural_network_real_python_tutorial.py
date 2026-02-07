@@ -126,19 +126,19 @@ def _(np):
     def sigmoid(x):
         return 1 / (1 + np.exp(-x))
     
+    def make_prediction(input_vector, weights, bias):
+        layer_1 = np.dot(input_vector, weights) + bias
+        #print(f"Layer 1 output: {layer_1}")
+        layer_2 = sigmoid(layer_1)
+        #print(f"Layer 2 output (after sigmoid): {layer_2}")
+        return layer_2
+
     def first_prediction(input_vector):
         print(f"Performing first prediction for input vector: {input_vector}") 
         # Wrapping the vectors in NumPy arrays
         #input_vector = np.array([1.66, 1.56])
         weights_1 = np.array([1.45, -0.66])
         bias = np.array([0.0])
-
-        def make_prediction(input_vector, weights, bias):
-            layer_1 = np.dot(input_vector, weights) + bias
-            #print(f"Layer 1 output: {layer_1}")
-            layer_2 = sigmoid(layer_1)
-            #print(f"Layer 2 output (after sigmoid): {layer_2}")
-            return layer_2
 
         prediction = make_prediction(input_vector, weights_1, bias)
         print(f"The prediction result is: {prediction}")
@@ -152,7 +152,7 @@ def _(np):
         print("The predicted class is: 0 which is correct")
     else:
         print("The predicted class is: 1 which is **incorrect**")
-    return (first_prediction,)
+    return first_prediction, make_prediction, sigmoid
 
 
 @app.cell(hide_code=True)
@@ -193,19 +193,117 @@ def _(mo):
 
 
 @app.cell
-def _(first_prediction, np):
+def _(make_prediction, np, sigmoid):
+    def sigmoid_derivative(x):
+        return sigmoid(x) * (1 - sigmoid(x))
+
     def calculate_gradient_descent():
         input_vector = np.array([2, 1.5])
-    
-        prediction = first_prediction(input_vector)
+
+        weights_1 = np.array([1.45, -0.66])
+        bias = np.array([0.0])
+        print(f"Initial weights: {weights_1}, bias: {bias}")
+        prediction = make_prediction(input_vector, weights_1, bias)
         target = 0
+        error = np.square(prediction - target)
+        print(f"Prediction: {prediction} {'==' if (prediction > 0.5) == target else '!='} Target: {target} with an Error: {error}")
 
         # d/dx mse = d/dx (prediction - target)^2
         derivative = 2 * (prediction - target)
 
         print(f"Derivative of MSE is: {derivative}")
 
+        # Updating the weights
+        weights_1 = weights_1 - derivative
+        print(f"Updated weights: {weights_1}")
+
+        prediction = make_prediction(input_vector, weights_1, bias)
+        error = np.square(prediction - target)
+        print(f"Prediction: {prediction} {'==' if (prediction > 0.5) == target else '!='} Target: {target} with an Error: {error}")
+
+        derror_dprediction = 2 * (prediction - target)
+        layer_1 = np.dot(input_vector, weights_1) + bias
+        dprediction_dlayer1 = sigmoid_derivative(layer_1)
+        dlayer1_dbias = 1
+
+        derivative_bias = derror_dprediction * dprediction_dlayer1 * dlayer1_dbias
+        print(f"Derivative with respect to bias: {derivative_bias}")
+    
+
     calculate_gradient_descent()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Neural Network Class
+
+    Combining everything into one class.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    class NeuralNetwork:
+        def __init__(self, learning_rate):
+            self.weights = np.array([np.random.randn(), np.random.randn()])
+            self.bias = np.random.randn()
+            self.learning_rate = learning_rate
+
+        def _sigmoid(self, x):
+            return 1 / (1 + np.exp(-x))
+
+        def _sigmoid_deriv(self, x):
+            return self._sigmoid(x) * (1 - self._sigmoid(x))
+
+        def predict(self, input_vector):
+            layer_1 = np.dot(input_vector, self.weights) + self.bias
+            layer_2 = self._sigmoid(layer_1)
+            prediction = layer_2
+            return prediction
+
+        def _compute_gradients(self, input_vector, target):
+            layer_1 = np.dot(input_vector, self.weights) + self.bias
+            layer_2 = self._sigmoid(layer_1)
+            prediction = layer_2
+
+            derror_dprediction = 2 * (prediction - target)
+            dprediction_dlayer1 = self._sigmoid_deriv(layer_1)
+            dlayer1_dbias = 1
+            dlayer1_dweights = (0 * self.weights) + (1 * input_vector)
+
+            derror_dbias = derror_dprediction * dprediction_dlayer1 * dlayer1_dbias
+            derror_dweights = derror_dprediction * dprediction_dlayer1 * dlayer1_dweights
+
+            return derror_dbias, derror_dweights
+
+        def _update_parameters(self, derror_dbias, derror_dweights):
+            self.bias = self.bias - (derror_dbias * self.learning_rate)
+            self.weights = self.weights - (derror_dweights * self.learning_rate)
+
+    return (NeuralNetwork,)
+
+
+@app.cell
+def _(mo):
+    ui_learning_rate = mo.ui.number(label="Learning Rate", value=0.1, step=0.01)
+    ui_learning_rate
+    return (ui_learning_rate,)
+
+
+@app.cell
+def _(NeuralNetwork, mo, np, ui_learning_rate):
+    def neural_network_class_first_prediction():
+        neural_network = NeuralNetwork(learning_rate=ui_learning_rate.value)
+
+        return neural_network.predict(np.array([2, 1.5]))
+
+    mo.vstack([
+        mo.md("### First Prediction using Neural Network class\nDue to the random initialisation the prediction always changes."),
+        neural_network_class_first_prediction()
+    ])
     return
 
 
