@@ -15,6 +15,26 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    This example notebook builds a simple feedforward neural network from scratch to learn the XOR, AND, or OR logic gate operations. The user can select the desired operation and visualize the decision boundary or 3D output surface. The model is trained using backpropagation and evaluated for accuracy.
+
+    Reference:
+
+    https://medium.com/@derek246810/building-an-xor-neural-network-from-scratch-learn-from-the-basics-63a2a22495ae
+
+    https://github.com/dkyg1087/ML-Study-Notes/blob/main/contents/Building_XOR_From_Scratch/XOR_from_scratch.ipynb
+
+    Additional resources:
+
+    https://www.youtube.com/watch?v=Ilg3gGewQ5U
+
+    https://www.geeksforgeeks.org/artificial-intelligence/how-neural-networks-solve-the-xor-problem/
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## Imports
     """)
     return
@@ -290,7 +310,11 @@ def _(
             color_discrete_sequence=["black"],
         )
         # add the predicted output as a surface mesh
-        fig.add_traces(px.scatter_3d(x=xx.ravel(), y=yy.ravel(), z=Z.ravel(), color=Z.ravel(), labels={"color": "Predicted Output"}).data)
+        fig.add_traces(
+            px.scatter_3d(
+                x=xx.ravel(), y=yy.ravel(), z=Z.ravel(), color=Z.ravel(), labels={"color": "Predicted Output"}
+            ).data
+        )
         fig.show()
 
 
