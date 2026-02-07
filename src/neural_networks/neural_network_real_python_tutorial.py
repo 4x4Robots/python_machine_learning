@@ -398,7 +398,7 @@ def _(NeuralNetwork, np, plt, px):
             #training_error,
             x="Iterations (x100)",
             y="Error for all training instances",
-            title="Training Error should decrease over Iterations"
+            title="Training Error should decrease over Iterations (even with the given random dataset)"
         )
         fig.show()
 

@@ -4,13 +4,6 @@ __generated_with = "0.19.8"
 app = marimo.App()
 
 
-@app.cell
-def _():
-    import marimo as mo
-
-    return (mo,)
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -30,9 +23,11 @@ def _(mo):
 @app.cell
 def _():
     import numpy as np
+    import marimo as mo
+    import polars as pl
     import matplotlib.pyplot as plt
 
-    return np, plt
+    return mo, np, pl, plt
 
 
 @app.cell(hide_code=True)
@@ -125,7 +120,7 @@ def _(Layer, np):
                     for layer in self.layers:
                         activations.append(layer.forward(activations[-1]))
 
-                    # Calculate error
+                    # Calculate error (MSE)
                     output_errors = y - activations[-1]
                     total_error += np.sum(output_errors ** 2)
 
@@ -164,11 +159,40 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    ui_dropdown_operation = mo.ui.dropdown(
+        options=["AND", "OR", "XOR"], value="XOR", label="Choose operation:"
+    )
+    ui_dropdown_operation
+    return (ui_dropdown_operation,)
+
+
 @app.cell
-def _(np):
-    inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    outputs = np.array([[0], [1], [1], [0]])
+def _(np, ui_dropdown_operation):
+    target_operation = ui_dropdown_operation.value
+    if target_operation == "XOR":
+        inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+        outputs = np.array([[0], [1], [1], [0]])
+    elif target_operation == "AND":
+        inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+        outputs = np.array([[0], [0], [0], [1]])
+    elif target_operation == "OR":
+        inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+        outputs = np.array([[0], [1], [1], [1]])
     return inputs, outputs
+
+
+@app.cell(hide_code=True)
+def _(inputs, outputs, pl):
+    # Visualize inputs and output using a dataframe
+    df_input = pl.DataFrame({
+        "Input A": inputs[:, 0],
+        "Input B": inputs[:, 1],
+        "Output": outputs.ravel()
+    })
+    df_input
+    return
 
 
 @app.cell(hide_code=True)
@@ -183,7 +207,7 @@ def _(mo):
 def _(NeuralNetwork, inputs, outputs):
     # Initialize the neural network with an input layer, one hidden layer, and an output layer
     layers = [2,2,1]  # 2 input neurons, 2 neurons in hidden layer, 1 output neuron
-    nn = NeuralNetwork(layers,0.1,10000)
+    nn = NeuralNetwork(layers, 0.1, 10000)
 
     # Train the neural network
     nn.train(inputs, outputs)
@@ -250,4 +274,3 @@ def _(inputs, nn, np, outputs, plt, predicted_output):
 
 if __name__ == "__main__":
     app.run()
-
