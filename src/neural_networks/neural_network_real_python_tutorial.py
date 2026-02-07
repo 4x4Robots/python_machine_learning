@@ -8,9 +8,10 @@ app = marimo.App(width="medium")
 def _():
     import numpy as np
     import marimo as mo
-    import matplotlib as plt
+    import plotly.express as px
+    import matplotlib.pyplot as plt
 
-    return mo, np
+    return mo, np, plt, px
 
 
 @app.cell(hide_code=True)
@@ -283,6 +284,41 @@ def _(np):
             self.bias = self.bias - (derror_dbias * self.learning_rate)
             self.weights = self.weights - (derror_dweights * self.learning_rate)
 
+        # Use stochastic gradient descent to train the neural network
+        # Stochastic gradient descent means that you pick a random data instance at each iteration to compute the gradients and update the weights. This is in contrast to batch gradient descent, where you would loop through all the data instances to compute the gradients and update the weights.
+        # https://en.wikipedia.org/wiki/Stochastic_gradient_descent
+        def train(self, input_vectors, targets, iterations):
+            cumulative_errors = []
+            for current_iteration in range(iterations):
+                # Pick a data instance at random
+                random_data_index = np.random.randint(len(input_vectors))
+
+                input_vector = input_vectors[random_data_index]
+                target = targets[random_data_index]
+
+                # Compute the gradients and update the weights
+                derror_dbias, derror_dweights = self._compute_gradients(
+                    input_vector, target
+                )
+
+                self._update_parameters(derror_dbias, derror_dweights)
+
+                # Measure the cumulative error for all the instances
+                if current_iteration % 100 == 0:
+                    cumulative_error = 0
+                    # Loop through all the instances to measure the error
+                    for data_instance_index in range(len(input_vectors)):
+                        data_point = input_vectors[data_instance_index]
+                        target = targets[data_instance_index]
+
+                        prediction = self.predict(data_point)
+                        error = np.square(prediction - target)
+
+                        cumulative_error = cumulative_error + error
+                    cumulative_errors.append(cumulative_error)
+
+            return cumulative_errors
+
     return (NeuralNetwork,)
 
 
@@ -304,6 +340,71 @@ def _(NeuralNetwork, mo, np, ui_learning_rate):
         mo.md("### First Prediction using Neural Network class\nDue to the random initialisation the prediction always changes."),
         neural_network_class_first_prediction()
     ])
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Training the Network with more Data
+
+    > You’ve already adjusted the weights and the bias for one data instance, but the goal is to make the network generalize over an entire dataset.
+    > [Stochastic gradient descent](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) is a technique in which, at every iteration, the model makes a prediction based on a randomly selected piece of training data, calculates the error, and updates the parameters.
+    >
+    > Now it’s time to create the train() method of your `NeuralNetwork` class. You’ll save the error over all data points every 100 iterations because you want to plot a chart showing how this metric changes as the number of iterations increases. This is the final `train()` method of your neural network.
+
+    https://realpython.com/python-ai-neural-network/
+    """)
+    return
+
+
+@app.cell
+def _(NeuralNetwork, np, plt, px):
+    def train_neural_network():
+        input_vectors = np.array(
+            [
+                [3, 1.5],
+                [2, 1],
+                [4, 1.5],
+                [3, 4],
+                [3.5, 0.5],
+                [2, 0.5],
+                [5.5, 1],
+                [1, 1],
+            ]
+        )
+        targets = np.array([0, 1, 0, 1, 0, 1, 1, 0])  # classificaiton targets (without deeper phyiscal meaning)
+
+        learning_rate = 0.1
+    
+        neural_network = NeuralNetwork(learning_rate=learning_rate)
+
+        training_error = neural_network.train(input_vectors, targets, iterations=10000)
+        return training_error
+
+    def plot_training_error_old(training_error):
+        plt.plot(training_error)
+        plt.xlabel("Iterations (x100)")
+        plt.ylabel("Error for all training instances")
+        plt.title("Training Error decreases over Iterations")
+        plt.show()
+
+    def plot_training_error(training_error):
+        # convert to dataframe for plotly
+        df = {"Iterations (x100)": list(range(len(training_error))), "Error for all training instances": training_error}
+        # use plotly to create an interactive plot directly
+        fig = px.line(
+            df,
+            #training_error,
+            x="Iterations (x100)",
+            y="Error for all training instances",
+            title="Training Error should decrease over Iterations"
+        )
+        fig.show()
+
+    _training_error = train_neural_network()
+    #plot_training_error_old(_training_error)
+    plot_training_error(_training_error)
     return
 
 
